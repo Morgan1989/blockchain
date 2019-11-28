@@ -1,0 +1,560 @@
+https://www.jianshu.com/p/ad6e124cf570
+
+
+main()
+    app.Run(os.Args)
+            HandleAction()
+                    geth()
+
+                        makeFullNode() 
+                                        makeConfigNode() create a new P2P node.
+                                        RegisterEthService()(create a eth service object) adds an Ethereum client to the stack(stack is a P2P node).
+                                                        eth.New() New creates a new Ethereum object
+                                                                        // Assemble the Ethereum object
+	                                                                chainDb, err := CreateDB(ctx, config, "chaindata")
+                                                                        // SetupGenesisBlock writes or updates the genesis block in db.
+                                                                        chainConfig, genesisHash, genesisErr := core.SetupGenesisBlock(chainDb, config.Genesis)
+                                                                                        // Just commit the new block if there is no stored genesis block.
+                                                                                        stored := rawdb.ReadCanonicalHash(db, 0)
+                                                                                        block, err := genesis.Commit(db)
+                                                                                        // Get the existing chain configuration.
+                                                                                        newcfg := genesis.configOrDefault(stored)
+                                                                                        storedcfg := rawdb.ReadChainConfig(db, stored)
+                                                                                        // Check config compatibility and write the config. Compatibility errors
+                                                                                        // are returned to the caller unless we're already at block zero.
+                                                                                        height := rawdb.ReadHeaderNumber(db, rawdb.ReadHeadHeaderHash(db))
+                                                                                        compatErr := storedcfg.CheckCompatible(newcfg, *height, GetIsQuorumEIP155Activated(db))
+                                                                                        rawdb.WriteChainConfig(db, stored, newcfg)
+                                                                        // NewBlockChain returns a fully initialised block chain using information
+                                                                        // available in the database. It initialises the default Ethereum Validator and
+                                                                        // Processor.
+                                                                        eth.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, eth.chainConfig, eth.engine, vmConfig, eth.shouldPreserve)
+                                                                                        // NewHeaderChain creates a new HeaderChain structure.
+                                                                                        bc.hc, err = NewHeaderChain(db, chainConfig, engine, bc.getProcInterrupt)
+                                                                                        // loadLastState loads the last known chain state from the database. This method
+                                                                                        // assumes that the chain manager mutex is held.
+                                                                                        err := bc.loadLastState()
+                                                                                                        // Restore the last known head block
+                                                                                                        head := rawdb.ReadHeadBlockHash(bc.db)
+                                                                                                        // Make sure the entire head block is available
+                                                                                                        currentBlock := bc.GetBlockByHash(head)
+                                                                                                        // Make sure the state associated with the block is available
+                                                                                                        _, err := state.New(currentBlock.Root(), bc.stateCache)
+                                                                                                        // Quorum
+                                                                                                        _, err := state.New(GetPrivateStateRoot(bc.db, currentBlock.Root()), bc.privateStateCache)
+                                                                                                        // Everything seems to be fine, set as the head block
+                                                                                                        bc.currentBlock.Store(currentBlock)
+                                                                                                        // Restore the last known head header
+                                                                                                        bc.hc.SetCurrentHeader(currentHeader)
+                                                                                                        // Restore the last known head fast block
+                                                                                                        bc.currentFastBlock.Store(currentBlock)
+
+                                                                                        go bc.update()
+                                                                        eth.bloomIndexer.Start(eth.blockchain)
+                                                                        // NewTxPool creates a new transaction pool to gather, sort and filter inbound
+                                                                        // transactions from the network.
+                                                                        eth.txPool = core.NewTxPool(config.TxPool, eth.chainConfig, eth.blockchain)
+                                                                                        // newAccountSet creates a new address set with an associated signer for sender
+                                                                                        // derivations.
+                                                                                        pool.locals = newAccountSet(pool.signer)
+                                                                                        // newTxPricedList creates a new price-sorted transaction heap.
+                                                                                        pool.priced = newTxPricedList(pool.all)
+                                                                                        pool.journal = newTxJournal(config.Journal)
+                                                                                        err := pool.journal.load(pool.AddLocals)
+                                                                                        err := pool.journal.rotate(pool.local())
+                                                                                        // Subscribe events from blockchain
+                                                                                        pool.chainHeadSub = pool.chain.SubscribeChainHeadEvent(pool.chainHeadCh)
+                                                                                        // loop is the transaction pool's main event loop, waiting for and reacting to
+                                                                                        // outside blockchain events as well as for various reporting and transaction
+                                                                                        // eviction events.
+                                                                                        go pool.loop()
+                                                                                                        pool.reset(head.Header(), ev.Block.Header())
+                                                                                                        pending, queued := pool.stats()
+                                                                                                        pool.removeTx(tx.Hash(), true)
+                                                                                                        rr := pool.journal.rotate(pool.local())
+                                                                        // NewProtocolManager returns a new Ethereum sub protocol manager. The Ethereum sub protocol manages peers capable
+                                                                        // with the Ethereum network.
+                                                                        eth.protocolManager, err = NewProtocolManager(eth.chainConfig, config.SyncMode, config.NetworkId, eth.eventMux, eth.txPool, eth.engine, eth.blockchain, chainDb, config.RaftMode)
+                                                                                        handler.SetBroadcaster(manager)
+                                                                                        func(p *p2p.Peer, rw p2p.MsgReadWriter) error
+                                                                                                        peer := manager.newPeer(int(version), p, rw)
+                                                                                                        // handle is the callback invoked to manage the life cycle of an eth peer. When
+                                                                                                        // this function terminates, the peer is disconnected.
+                                                                                                        manager.handle(peer)
+                                                                                                                        err := p.Handshake(pm.networkID, td, hash, genesis.Hash())
+                                                                                                                        err := pm.peers.Register(p)
+                                                                                                                        err := pm.downloader.RegisterPeer(p.id, p.version, p)
+                                                                                                                        // Propagate existing transactions. new transactions appearing
+                                                                                                                        // after this will be sent via broadcasts.
+                                                                                                                        // syncTransactions starts sending all currently pending transactions to the given peer.
+                                                                                                                        pm.syncTransactions(p)
+                                                                                                                                        pending, _ := pm.txpool.Pending()
+                                                                                                                                        txs = append(txs, batch...)
+                                                                                                                                        case pm.txsyncCh <- &txsync{p, txs}:
+                                                                                                                        // handleMsg is invoked whenever an inbound message is received from a remote
+                                                                                                                        // peer. The remote connection is torn down upon returning any error.
+                                                                                                                        err := pm.handleMsg(p)
+                                                                                                                                        // Read the next message from the remote peer, and ensure it's fully consumed
+                                                                                                                                        msg, err := p.rw.ReadMsg()
+                                                                                                                                        handler, ok := pm.engine.(consensus.Handler)
+                                                                                                                                        pubKey := p.Node().Pubkey()
+                                                                                                                                        addr := crypto.PubkeyToAddress(*pubKey)
+                                                                                                                                        // HandleMsg implements consensus.Handler.HandleMsg
+                                                                                                                                        handled, err := handler.HandleMsg(addr, msg)
+                                                                                                                                                        if msg.Code == istanbulMsg || msg.Code == istanbulSub
+                                                                                                                                                        ms, ok := sb.recentMessages.Get(addr)
+                                                                                                                                                        sb.recentMessages.Add(addr, m)
+                                                                                                                                                        m.Add(hash, true)
+                                                                                                                                                        _, ok := sb.knownMessages.Get(hash)
+                                                                                                                                                        sb.knownMessages.Add(hash, true)
+                                                                                                                                                        go sb.istanbulEventMux.Post(istanbul.MessageEvent{
+                                                                                                                                                                                        Payload: data,
+                                                                                                                                                                                })
+                                                                                                                                                        if msg.Code == NewBlockMsg && sb.core.IsProposer()
+
+                                                                                                                                        // Handle the message depending on its contents
+                                                                                                                                        // Block header query, collect the requested headers and reply
+                                                                                                                                        err := msg.Decode(&query)
+                                                                                                                                        origin = pm.blockchain.GetHeaderByHash(query.Origin.Hash)
+                                                                                                                                        origin = pm.blockchain.GetHeader(query.Origin.Hash, query.Origin.Number)
+                                                                                                                                        origin = pm.blockchain.GetHeaderByNumber(query.Origin.Number)
+                                                                                                                                        // Advance to the next header of the query
+                                                                                                                                        // Hash based traversal towards the genesis block
+                                                                                                                                        query.Origin.Hash, query.Origin.Number = pm.blockchain.GetAncestor(query.Origin.Hash, query.Origin.Number, ancestor, &maxNonCanonical)
+                                                                                                                                        // Hash based traversal towards the leaf block
+                                                                                                                                        header := pm.blockchain.GetHeaderByNumber(next)
+                                                                                                                                        expOldHash, _ := pm.blockchain.GetAncestor(nextHash, next, query.Skip+1, &maxNonCanonical)
+                                                                                                                                        return p.SendBlockHeaders(headers)
+
+                                                                                                                                        // A batch of headers arrived to one of our previous requests
+                                                                                                                                        err := msg.Decode(&headers)
+                                                                                                                                        daoHeader := pm.blockchain.GetHeaderByNumber(pm.chainconfig.DAOForkBlock.Uint64())
+                                                                                                                                        // Filter out any explicitly requested headers, deliver the rest to the downloader
+                                                                                                                                        // Validate the header and either drop the peer or continue
+                                                                                                                                        err := misc.VerifyDAOHeaderExtraData(pm.chainconfig, headers[0])
+                                                                                                                                        // Irrelevant of the fork checks, send the header to the fetcher just in case
+                                                                                                                                        headers = pm.fetcher.FilterHeaders(p.id, headers, time.Now())
+                                                                                                                                        err := pm.downloader.DeliverHeaders(p.id, headers)
+
+                                                                                                                                        // Decode the retrieval message
+                                                                                                                                        msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))
+                                                                                                                                        // Retrieve the hash of the next block
+                                                                                                                                        err := msgStream.Decode(&hash)
+                                                                                                                                        // Retrieve the requested block body, stopping if enough was found
+                                                                                                                                        data := pm.blockchain.GetBodyRLP(hash)
+                                                                                                                                        return p.SendBlockBodiesRLP(bodies)
+
+                                                                                                                                        // A batch of block bodies arrived to one of our previous requests
+                                                                                                                                        err := msg.Decode(&request)
+                                                                                                                                        err := pm.downloader.DeliverBodies(p.id, transactions, uncles)
+
+                                                                                                                                        // Decode the retrieval message
+                                                                                                                                        msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))
+                                                                                                                                        // Retrieve the hash of the next state entry
+                                                                                                                                        err := msgStream.Decode(&hash)
+                                                                                                                                        // Retrieve the requested state entry, stopping if enough was found
+                                                                                                                                        entry, err := pm.blockchain.TrieNode(hash)
+                                                                                                                                        return p.SendNodeData(data)
+
+                                                                                                                                        // A batch of node state data arrived to one of our previous requests
+                                                                                                                                        err := msg.Decode(&data)
+                                                                                                                                        // Deliver all to the downloader
+                                                                                                                                        err := pm.downloader.DeliverNodeData(p.id, data)
+
+                                                                                                                                        // Decode the retrieval message
+                                                                                                                                        msgStream := rlp.NewStream(msg.Payload, uint64(msg.Size))
+                                                                                                                                        // Retrieve the hash of the next block
+                                                                                                                                        err := msgStream.Decode(&hash)
+                                                                                                                                        // Retrieve the requested block's receipts, skipping if unknown to us
+                                                                                                                                        results := pm.blockchain.GetReceiptsByHash(hash)
+                                                                                                                                        return p.SendReceiptsRLP(receipts)
+
+                                                                                                                                        // A batch of receipts arrived to one of our previous requests
+                                                                                                                                        err := msg.Decode(&receipts)
+                                                                                                                                        // Deliver all to the downloader
+                                                                                                                                        err := pm.downloader.DeliverReceipts(p.id, receipts)
+
+                                                                                                                                        err := msg.Decode(&announces)
+                                                                                                                                        // Mark the hashes as present at the remote node
+                                                                                                                                        p.MarkBlock(block.Hash)
+                                                                                                                                        // Schedule all the unknown hashes for retrieval
+                                                                                                                                        !pm.blockchain.HasBlock(block.Hash, block.Number)
+                                                                                                                                        pm.fetcher.Notify(p.id, block.Hash, block.Number, time.Now(), p.RequestOneHeader, p.RequestBodies)
+
+                                                                                                                                        // Retrieve and decode the propagated block
+                                                                                                                                        err := msg.Decode(&request)
+                                                                                                                                        go pm.synchronise(p)
+
+                                                                                                                                        // Transactions arrived, make sure we have a valid and fresh chain to handle them
+                                                                                                                                        // Transactions can be processed, parse all of them and deliver to the pool
+                                                                                                                                        err := msg.Decode(&txs)
+                                                                                                                                        p.MarkTransaction(tx.Hash())
+                                                                                                                                        pm.txpool.AddRemotes(txs)                                                             
+
+                                                                                        // Construct the different synchronisation mechanisms
+                                                                                        manager.downloader = downloader.New(mode, chaindb, manager.eventMux, blockchain, nil, manager.removePeer)
+                                                                                                        // qosTuner is the quality of service tuning loop that occasionally gathers the
+                                                                                                        // peer latency statistics and updates the estimated request round trip time.
+                                                                                                        go dl.qosTuner()
+                                                                                                        // stateFetcher manages the active state sync and accepts requests
+                                                                                                        // on its behalf.
+                                                                                                        go dl.stateFetcher()
+                                                                                                                        // runStateSync runs a state synchronisation until it completes or another root
+                                                                                                                        // hash is requested to be switched over to.
+                                                                                                                        next = d.runStateSync(next)
+                                                                                                                                        // Run the state sync.
+                                                                                                                                        go s.run()
+                                                                                        engine.VerifyHeader(blockchain, header, true)
+                                                                                        blockchain.CurrentBlock().NumberU64()
+                                                                                        manager.blockchain.InsertChain(blocks)
+                                                                                        // New creates a block fetcher to retrieve blocks based on hash announcements.
+                                                                                        manager.fetcher = fetcher.New(blockchain.GetBlockByHash, validator, manager.BroadcastBlock, heighter, inserter, manager.removePeer)
+                                                                        eth.miner = miner.New(eth, eth.chainConfig, eth.EventMux(), eth.engine, config.MinerRecommit, config.MinerGasFloor, config.MinerGasCeil, eth.isLocalBlock)
+                                                                                        newWorker(config, engine, eth, mux, recommit, gasFloor, gasCeil, isLocalBlock)
+                                                                                                        // if the consensus is consensus.Istanbul
+                                                                                                        go worker.mainLoop()
+                                                                                                        go worker.newWorkLoop(recommit)
+                                                                                                        go worker.resultLoop()
+                                                                                                        go worker.taskLoop()
+                                                                                                                        case task := <-w.taskCh:
+                                                                                                                                sealHash := w.engine.SealHash(task.block.Header())
+                                                                                                                                w.pendingTasks[w.engine.SealHash(task.block.Header())] = task
+                                                                                                                                go w.seal(task.block, stopCh)
+                                                                                                                                                // Seal generates a new block for the given input block with the local miner's
+                                                                                                                                                // seal place on top.
+                                                                                                                                                err := w.engine.Seal(w.chain, b, w.resultCh, stop)
+                                                                                                                        case <-w.exitCh:
+                                                                                                                               interrupt() 
+                                                                                        // update keeps track of the downloader events. Please be aware that this is a one shot type of update loop.
+                                                                                        // It's entered once and as soon as `Done` or `Failed` has been broadcasted the events are unregistered and
+                                                                                        // the loop is exited. This to prevent a major security vuln where external parties can DOS you with blocks
+                                                                                        // and halt your mining operation for as long as the DOS continues.
+                                                                                        go miner.update()
+                                                                                                        self.Mining()
+                                                                                                        self.Start(self.coinbase)
+                                                                                                                        self.worker.start()
+                                                                                                                                        istanbul.Start(w.chain, w.chain.CurrentBlock, w.chain.HasBadBlock)
+                                                                        eth.APIBackend.gpo = gasprice.NewOracle(eth.APIBackend, gpoParams)
+                        startNode()
+                                        utils.StartNode()
+                                                        stack.Start() (stack is a P2P node)
+                                                                        /* Server manages all peer connections */
+                                                                        running := &p2p.Server{Config: n.serverConfig}
+                                                                        /* Maybe constructor is RegisterEthService(), it means this statement will create one more 
+                                                                        eth service object (Why? What's the different from eth service object created by makeFullNode())
+                                                                        */
+                                                                        service, err := constructor(ctx)
+                                                                        /* Start starts running the server. */
+                                                                        running.Start()
+                                                                                        srv.setupLocalNode() (srv is Server object)
+                                                                                        srv.setupListening()
+                                                                                        /* discovery new nodes and update route table */
+                                                                                        srv.setupDiscovery()
+                                                                                                // ListenUDP returns a new table that listens for UDP packets on laddr.
+                                                                                                discovery.ListenUDP()
+                                                                                                                newUDP(c, ln, cfg)
+                                                                                                                                newTable(udp, ln.Database(), cfg.Bootnodes)
+                                                                                                                                                // setFallbackNodes sets the initial points of contact. These nodes
+                                                                                                                                                // are used to connect to the network if the table is empty and there
+                                                                                                                                                // are no known nodes in the database.
+                                                                                                                                                tab.setFallbackNodes(bootnodes)
+                                                                                                                                                                // checks whether n is a valid complete node.
+                                                                                                                                                                n.ValidateComplete()(n is bootstrap node)
+                                                                                                                                                                tab.nursery = wrapNodes(nodes)(nursery is to store bootstrap nodes)
+                                                                                                                                                tab.seedRand()
+                                                                                                                                                tab.loadSeedNodes()
+                                                                                                                                                // loop schedules refresh, revalidate runs and coordinates shutdown.
+                                                                                                                                                go tab.loop()
+                                                                                                                                                                // doRefresh performs a lookup for a random target to keep buckets
+                                                                                                                                                                // full. seed nodes are inserted if the table is empty (initial
+                                                                                                                                                                // bootstrap or discarded faulty peers).
+                                                                                                                                                                go tab.doRefresh(refreshDone)
+                                                                                                                                // loop runs in its own goroutine. it keeps track of
+                                                                                                                                // the refresh timer and the pending reply queue.
+                                                                                                                                go udp.loop()
+                                                                                                                                // readLoop runs in its own goroutine. it handles incoming UDP packets.
+                                                                                                                                go udp.readLoop(cfg.Unhandled)
+
+
+                                                                                        go srv.run(dialer)
+                                                                        service.Start(running)(service is eth service object in backend.go)
+                                                                                        // Start the bloom bits servicing goroutines
+                                                                                        // startBloomHandlers starts a batch of goroutines to accept bloom bit database
+                                                                                        // retrievals from possibly a range of filters and serving the data to satisfy.
+                                                                                        s.startBloomHandlers(params.BloomBitsBlocks) (s is service as well as eth service object)
+                                                                                        // Start the RPC service
+                                                                                        s.netRPCService = ethapi.NewPublicNetAPI(srvr, s.NetVersion())
+                                                                                        // Start the networking layer and the light server if requested
+                                                                                        s.protocolManager.Start(maxPeers)
+                                                                                                        // broadcast transactions
+                                                                                                        // BroadcastTxs will propagate a batch of transactions to all peers which are not known to
+                                                                                                        // already have the given transaction.
+                                                                                                        go pm.txBroadcastLoop()
+                                                                                                                        // AsyncSendTransactions queues list of transactions propagation to a remote
+                                                                                                                        // peer. If the peer's broadcast queue is full, the event is silently dropped.
+                                                                                                                        peer.AsyncSendTransactions(txs)
+                                                                                                                                        p.knownTxs.Add(tx.Hash())
+                                                                                                        // broadcast mined blocks
+                                                                                                        go pm.minedBroadcastLoop()
+                                                                                                                        pm.BroadcastBlock(ev.Block, true)  // First propagate block to peers
+                                                                                                                        pm.BroadcastBlock(ev.Block, false) // Only then announce to the rest
+                                                                                                        // start sync handlers
+                                                                                                        // syncer is responsible for periodically synchronising with the network, both
+                                                                                                        // downloading hashes and blocks as well as handling the announcement handler.
+                                                                                                        go pm.syncer()
+                                                                                                                        // Start and ensure cleanup of sync mechanisms
+                                                                                                                        pm.fetcher.Start()
+                                                                                                                        // synchronise tries to sync up our local block chain with a remote peer.
+                                                                                                                        go pm.synchronise(pm.peers.BestPeer())
+                                                                                                                                        err := pm.downloader.Synchronise(peer.id, pHead, pTd, mode)
+                                                                                                                                                        // synchronise will select the peer and use it for synchronising. If an empty string is given
+                                                                                                                                                        // it will use the best peer possible and synchronize if its TD is higher than our own. If any of the
+                                                                                                                                                        // checks fail an error will be returned. This method is synchronous
+                                                                                                                                                        err := d.synchronise(id, head, td, mode)
+                                                                                                                                                                        if d.mode == BoundedFullSync {
+                                                                                                                                                                                return d.syncWithPeerUntil(p, hash, td)
+                                                                                                                                                                                	        fetchers := []func() error{
+                                                                                                                                                                                                        func() error { return d.fetchBoundedHeaders(p, localHeight+1, remoteHeight) },
+                                                                                                                                                                                                        func() error { return d.fetchBodies(localHeight + 1) },
+                                                                                                                                                                                                        func() error { return d.fetchReceipts(localHeight + 1) }, // Receipts are only retrieved during fast sync
+                                                                                                                                                                                                        func() error { return d.processHeaders(localHeight+1, pivot, td) },
+                                                                                                                                                                                                        d.processFullSyncContent, //This must be added to clear the buffer of downloaded content as it's being filled
+                                                                                                                                                                                                }
+                                                                                                                                                                                                // spawnSync runs d.process and all given fetcher functions to completion in
+                                                                                                                                                                                                // separate goroutines, returning the first error that appears.
+	                                                                                                                                                                                        return d.spawnSync(fetchers)
+                                                                                                                                                                                                                d.fetchBoundedHeaders(p, localHeight+1, remoteHeight)
+                                                                                                                                                                                                                d.fetchBodies(localHeight + 1)
+                                                                                                                                                                                                                d.fetchReceipts(localHeight + 1)
+                                                                                                                                                                                                                d.processHeaders(localHeight+1, pivot, td)
+                                                                                                                                                                                                                d.processFullSyncContent()
+                                                                                                                                                                                                                                results := d.queue.Results(true)
+                                                                                                                                                                                                                                d.chainInsertHook(results)
+                                                                                                                                                                                                                                err := d.importBlockResults(results)
+                                                                                                                                                                                                                                                blocks[i] = types.NewBlockWithHeader(result.Header).WithBody(result.Transactions, result.Uncles)
+                                                                                                                                                                                                                                                index, err := d.blockchain.InsertChain(blocks)
+                                                                                                                                                                        }
+                                                                                                                                                                        return d.syncWithPeer(p, hash, td)
+                                                                                                                                        // BroadcastBlock will either propagate a block to a subset of it's peers, or
+                                                                                                                                        // will only announce it's availability (depending what's requested).
+                                                                                                                                        go pm.BroadcastBlock(head, false)
+                                                                                                                                                        peers := pm.peers.PeersWithoutBlock(hash)
+                                                                                                                                                        // AsyncSendNewBlock queues an entire block for propagation to a remote peer. If
+                                                                                                                                                        // the peer's broadcast queue is full, the event is silently dropped.
+                                                                                                                                                        peer.AsyncSendNewBlock(block, td)
+                                                                                                                                                                        p.knownBlocks.Add(block.Hash())
+                                                                                                                                                        // AsyncSendNewBlockHash queues the availability of a block for propagation to a
+                                                                                                                                                        // remote peer. If the peer's broadcast queue is full, the event is silently
+                                                                                                                                                        // dropped.
+                                                                                                                                                        peer.AsyncSendNewBlockHash(block)
+                                                                                                                                                                        p.knownBlocks.Add(block.Hash())
+                                                                                                        // txsyncLoop takes care of the initial transaction sync for each new
+                                                                                                        // connection. When a new peer appears, we relay all currently pending
+                                                                                                        // transactions. In order to minimise egress bandwidth usage, we send
+                                                                                                        // the transactions in small packs to one peer at a time.
+                                                                                                        go pm.txsyncLoop()
+                                                                                                                        pack.p.SendTransactions(pack.txs)
+                                                                                                                                        p.knownTxs.Add(tx.Hash())
+                                                                                                                                        return p2p.Send(p.rw, TxMsg, txs)
+                                                                                        if s.lesServer != nil {
+                                                                                                s.lesServer.Start(srvr)
+                                                                                        }
+                                                                        // Lastly start the configured RPC interfaces
+                                                                        n.startRPC(services)(n is stack as well as P2P node)
+                                                                                         err := n.startInProc(apis)
+                                                                                         err := n.startIPC(apis)
+                                                                                         err := n.startHTTP(n.httpEndpoint, apis, n.config.HTTPModules, n.config.HTTPCors, n.config.HTTPVirtualHosts, n.config.HTTPTimeouts)
+                                                                                         err := n.startWS(n.wsEndpoint, apis, n.config.WSModules, n.config.WSOrigins, n.config.WSExposeAll)
+                                                                        // Finish initializing the startup
+                                                                        /* n is Node object, services is eth service object, running is P2P Server object */
+                                                                        n.services = services
+                                                                        n.server = running
+                                        /* manage accounts and wallets */
+                                        // Unlock any account specifically requested
+                                        ks := stack.AccountManager().Backends(keystore.KeyStoreType)[0].(*keystore.KeyStore)
+                                        passwords := utils.MakePasswordList(ctx)
+                                        unlockAccount(ctx, ks, trimmed, i, passwords)
+                                        stack.AccountManager().Subscribe(events)
+                                        /* create a ethclient */
+                                        go func() {
+                                                        rpcClient, err := stack.Attach()
+                                                        stateReader := ethclient.NewClient(rpcClient)
+                                        }
+                                                                               
+                                        // Start auxiliary services if enabled
+                                        / Set the gas price to the limits from the CLI and start mining
+                                        ethereum.TxPool().SetGasPrice(gasprice)
+                                        /* Almost for full node to mine */
+                                        // StartMining starts the miner with the given number of CPU threads. If mining
+                                        // is already running, this method adjust the number of threads allowed to use
+                                        // and updates the minimum price required by the transaction pool.
+                                        ethereum.StartMining(threads) (ethereum is a eth service object)
+                                                        th.SetThreads(threads)
+                                                        // If the miner was not running, initialize it
+                                                        s.txPool.SetGasPrice(price)
+                                                        // Configure the local mining address
+                                                        eb, err := s.Etherbase()
+                                                        clique.Authorize(eb, wallet.SignHash)
+                                                        go s.miner.Start(eb)
+                                                                        self.SetEtherbase(coinbase)
+                                                                        self.worker.start()
+                                                                                        istanbul.Start(w.chain, w.chain.CurrentBlock, w.chain.HasBadBlock) // func (sb *backend) Start(chain consensus.ChainReader, currentBlock func() *types.Block, hasBadBlock func(hash common.Hash) bool) error in engine.go
+                                                                                                        err := sb.core.Start()  //func (c *core) Start() error in handler.go
+                                                                                                                        // Start a new round from last sequence + 1
+                                                                                                                        c.startNewRound(common.Big0)
+                                                                                                                        // Tests will handle events itself, so we have to make subscribeEvents()
+                                                                                                                        // be able to call in test.
+                                                                                                                        c.subscribeEvents()
+                                                                                                                        go c.handleEvents()
+                                                                                                                                        case istanbul.RequestEvent:
+                                                                                                                                                err := c.handleRequest(r)
+                                                                                                                                                                // check request state
+                                                                                                                                                                // return errInvalidMessage if the message is invalid
+                                                                                                                                                                // return errFutureMessage if the sequence of proposal is larger than current sequence
+                                                                                                                                                                // return errOldMessage if the sequence of proposal is smaller than current sequence
+                                                                                                                                                                err := c.checkRequestMsg(request)
+                                                                                                                                                                c.sendPreprepare(request)
+                                                                                                                                                                                c.broadcast(&message{
+                                                                                                                                                                                                Code: msgPreprepare,
+                                                                                                                                                                                                Msg:  preprepare,
+                                                                                                                                                                                        })
+                                                                                                                                                                                                payload, err := c.finalizeMessage(msg)
+                                                                                                                                                                                                // Broadcast implements istanbul.Backend.Broadcast
+                                                                                                                                                                                                err = c.backend.Broadcast(c.valSet, payload)
+                                                                                                                                                                                                        	// send to others
+                                                                                                                                                                                                                sb.Gossip(valSet, payload)
+                                                                                                                                                                                                                                ps := sb.broadcaster.FindPeers(targets)
+                                                                                                                                                                                                                                ms, ok := sb.recentMessages.Get(addr)
+                                                                                                                                                                                                                                m.Add(hash, true)
+                                                                                                                                                                                                                                sb.recentMessages.Add(addr, m)
+                                                                                                                                                                                                                                go p.Send(uint64(sb.GetType()), payload)
+                                                                                                                                                                                                                // send to self
+                                                                                                                                                                                                                msg := istanbul.MessageEvent{
+                                                                                                                                                                                                                        Payload: payload,
+                                                                                                                                                                                                                }
+                                                                                                                                                                                                                go sb.istanbulEventMux.Post(msg)
+                                                                                                                                                c.storeRequestMsg(r)
+                                                                                                                                        case istanbul.MessageEvent:
+                                                                                                                                                err := c.handleMsg(ev.Payload)
+                                                                                                                                                                return c.handleCheckedMsg(msg, src)
+                                                                                                                                                                                case msgPreprepare:
+                                                                                                                                                                                      err := testBacklog(c.handlePreprepare(msg, src))
+                                                                                                                                                                                case msgPrepare:
+                                                                                                                                                                                      err := testBacklog(c.handlePrepare(msg, src))
+                                                                                                                                                                                case msgCommit:
+                                                                                                                                                                                        err := testBacklog(c.handleCommit(msg, src))
+                                                                                                                                                                                                        err := c.checkMessage(msgCommit, commit.View)
+                                                                                                                                                                                                        err := c.verifyCommit(commit, src)
+                                                                                                                                                                                                        c.acceptCommit(msg, src)
+                                                                                                                                                                                                        c.commit()
+                                                                                                                                                                                                                        err := c.backend.Commit(proposal, committedSeals)
+                                                                                                                                                                                                                                        h := block.Header()
+                                                                                                                                                                                                                                        err := writeCommittedSeals(h, seals)
+                                                                                                                                                                                                                                        block = block.WithSeal(h)
+                                                                                                                                                                                                                                        // - if the proposed and committed blocks are the same, send the proposed hash
+                                                                                                                                                                                                                                        //   to commit channel, which is being watched inside the engine.Seal() function.
+                                                                                                                                                                                                                                        // - otherwise, we try to insert the block.
+                                                                                                                                                                                                                                        // -- if success, the ChainHeadEvent event will be broadcasted, try to build
+                                                                                                                                                                                                                                        //    the next block and the previous Seal() will be stopped.
+                                                                                                                                                                                                                                        // -- otherwise, a error will be returned and a round change event will be fired.
+                                                                                                                                                                                                                                        if sb.proposedBlockHash == block.Hash() {
+                                                                                                                                                                                                                                                // feed block hash to Seal() and wait the Seal() result
+                                                                                                                                                                                                                                                sb.commitCh <- block
+                                                                                                                                                                                                                                                return nil
+                                                                                                                                                                                                                                        }
+
+                                                                                                                                                                                                                                        if sb.broadcaster != nil {
+                                                                                                                                                                                                                                                sb.broadcaster.Enqueue(fetcherID, block)
+                                                                                                                                                                                                                                        }
+                                                                                                                                                                                case msgRoundChange:
+                                                                                                                                                                                        err := testBacklog(c.handleRoundChange(msg, src))                                                                                                                                                                               
+                                                                                                                                                                                    
+                                                                                                                                                c.backend.Gossip(c.valSet, ev.Payload)
+                                                                                                                                                                ps := sb.broadcaster.FindPeers(targets)
+                                                                                                                                                                ms, ok := sb.recentMessages.Get(addr)
+                                                                                                                                                                m.Add(hash, true)
+                                                                                                                                                                sb.recentMessages.Add(addr, m)
+                                                                                                                                                                go p.Send(uint64(sb.GetType()), payload)                                                                                                                                                
+                                                                                                                                        case backlogEvent:
+                                                                                                                                                err := c.handleCheckedMsg(ev.msg, ev.src)
+                                                                                                                                                c.backend.Gossip(c.valSet, p)
+                                                                                                                                                                ps := sb.broadcaster.FindPeers(targets)
+                                                                                                                                                                ms, ok := sb.recentMessages.Get(addr)
+                                                                                                                                                                m.Add(hash, true)
+                                                                                                                                                                sb.recentMessages.Add(addr, m)
+                                                                                                                                                                go p.Send(uint64(sb.GetType()), payload)                                                                                                                                                  
+                                                                                                                                         _, ok := <-c.timeoutSub.Chan():
+                                                                                                                                                c.handleTimeoutMsg()
+                                                                                                                                        event, ok := <-c.finalCommittedSub.Chan():
+                                                                                                                                                c.handleFinalCommitted()
+                                                                                                                                                                // startNewRound starts a new round. if round equals to 0, it means to starts a new sequence
+                                                                                                                                                                c.startNewRound(common.Big0)
+
+
+
+go worker.newWorkLoop(recommit) -> go worker.mainLoop2() -> go worker.maintaskLoop() -> go worker.resultMainLoop()
+
+
+go worker.newWorkLoop(recommit)
+                case <-w.startCh:
+                        clearPending(w.chain.CurrentBlock().NumberU64())
+                        commit(false, commitInterruptNewHead)
+                case head := <-w.chainHeadCh:
+                        h.NewChainHead()
+                        clearPending(w.chain.CurrentBlock().NumberU64())
+                        commit(false, commitInterruptNewHead) 
+                case <-timer.C:
+                case interval := <-w.resubmitIntervalCh:
+                case adjust := <-w.resubmitAdjustCh: 
+go worker.mainLoop2()
+                case req := <-w.newWorkCh:
+                        w.commitNewMainWork(req.interrupt, req.noempty, req.timestamp)
+                                1. 组建主块header
+                                err := w.engine.Prepare(w.chain, header)
+                                err := w.makeMainCurrent(parent, header) 
+                                unclesNew := w.eth.TxPoolMain().Pending()
+                                for _, v := range uncles {
+                                        cur, ok := w.eth.TxPoolMain().GetBlock(v.Nonce.Uint64(), v.Hash())
+                                } 
+                                for {
+                                        trans := blks[i].Transactions()
+                                        w.commitMainTransactions(trans, w.coinbase, interrupt, tmpState)
+                                                         _, err := w.commitMainTransaction(txs[i], coinbase, sdb)
+                                                                        // 用于更改状态树
+                                                                        receipt, privateReceipt, _, err := core.ApplyTransaction(w.config, w.chain, &coinbase, w.current.gasPool, sdb, w.current.privateState, w.current.header, tx, &w.current.header.GasUsed, vm.Config{})
+                                }
+                                w.commit(uncles, w.fullTaskHook, true, tstart)
+                                                block, err := w.engine.Finalize(w.chain, w.current.header, s, w.current.txs, uncles, w.current.receipts)
+                                                case w.taskCh <- &task{receipts: receipts, privateReceipts: privateReceipts, state: s, privateState: ps, block: block, createdAt: time.Now()}:
+                                                case <-w.exitCh:
+                                                w.updateSnapshot()
+ go worker.maintaskLoop()
+                case task := <-w.taskCh:
+                        sealHash := w.engine.SealHash(task.block.Header())
+                        go w.seal(task.block, stopCh)
+                                        err := w.engine.Seal(w.chain, b, w.resultCh, stop)
+                                                        snap, err := sb.snapshot(chain, number-1, header.ParentHash, nil)
+                                                        _, v := snap.ValSet.GetByAddress(sb.address)
+                                                        parent := chain.GetHeader(header.ParentHash, number-1)
+                                                        block, err = sb.updateBlock(parent, block)
+                                                        case <-time.After(delay):
+                                                        case <-stop:
+                                                                results <- nil
+                                                        go sb.EventMux().Post(istanbul.RequestEvent{
+                                                                Proposal: block,
+                                                        })
+                                                        case result := <-sb.commitCh:
+                                                                results <- result
+                                                        case <-stop:
+                case <-w.exitCh:                                               
+go worker.resultMainLoop()
+                case block := <-w.resultCh:
+                        privateStateRoot, _ := work.privateState.Commit(w.config.IsEIP158(block.Number()))
+                        core.WritePrivateStateRoot(w.eth.ChainDb(), block.Root(), privateStateRoot)
+                        allReceipts := mergeReceipts(work.receipts, work.privateReceipts)
+                        stat, err := w.chain.WriteBlockWithState(block, allReceipts, work.state, nil)
+                        w.chain.BcSub.WriteSubBlockWithoutState(v, nil)
+                        w.chain.BcSub.InsertSub(v)
+                        // Broadcast the block and announce chain insertion event
+                        w.mux.Post(core.NewMinedBlockEvent{Block: block})
+                case <-w.exitCh:
